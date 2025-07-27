@@ -8,9 +8,9 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      CD_REPO_URL: ${{ secrets.CD_REPO_URL }}
+      DOCKERHUB_USERNAME: matana1305
+      DOCKERHUB_TOKEN: dckr_pat_noNDGBfjC2yYFD3OyxTXN0t7rEc
+      CD_REPO_URL: https://github.com/matana1305/fastapi-app-cd.git
       CD_REPO_TOKEN: ${{ secrets.CD_REPO_TOKEN }}
     steps:
       - name: Checkout code

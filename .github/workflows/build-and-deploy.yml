@@ -25,35 +25,41 @@ jobs:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker image
-        run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/fastapi-app:latest .
-
-      - name: Push Docker image
-        run: docker push ${{ env.DOCKERHUB_USERNAME }}/fastapi-app:latest
-
-      - name: Send notification email
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT }}
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
-          subject: CI Pipeline Notification
-          to: ${{ secrets.NOTIFY_EMAIL_TO }}
-          from: ${{ secrets.NOTIFY_EMAIL_FROM }}
-          body: |
-            The Docker image for the FastAPI app was built and pushed successfully.
-            Commit: ${{ github.sha }}
-            Workflow: ${{ github.workflow }}
-            Run: ${{ github.run_number }}
-
-      - name: Update CD repository (placeholder)
+      - name: Get latest tag and increment
+        id: get_tag
         run: |
-          git config --global user.email "ci@example.com"
-          git config --global user.name "CI Bot"
-          git clone https://${{ env.CD_REPO_TOKEN }}@${{ env.CD_REPO_URL }} cd-repo
-          cd cd-repo
-          # Update deployment files as needed
-          git add .
-          git commit -m "Update deployment with new image"
-          git push 
+          # Get the latest tag from Docker Hub (replace with your Docker Hub username)
+          latest_tag=$(curl -s https://hub.docker.com/v2/repositories/${{ env.DOCKERHUB_USERNAME }}/fastapi-app/tags | jq -r '.results[].name' | grep -E '^v[0-9]+$' | sort -V | tail -n1)
+          if [ -z "$latest_tag" ]; then
+            new_tag="v1"
+          else
+            new_tag="v$(( ${latest_tag#v} + 1 ))"
+          fi
+          echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image with new tag
+        run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/fastapi-app:${{ steps.get_tag.outputs.new_tag }} .
+
+      # - name: Send notification email
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: ${{ secrets.SMTP_SERVER }}
+      #     server_port: ${{ secrets.SMTP_PORT }}
+      #     username: ${{ secrets.SMTP_USERNAME }}
+          # password: ${{ secrets.SMTP_PASSWORD }}
+          # subject: CI Pipeline Notification
+          # to: ${{ secrets.NOTIFY_EMAIL_TO }}
+          # from: ${{ secrets.NOTIFY_EMAIL_FROM }}
+          # body: |
+          #   The Docker image for the FastAPI app was built and pushed successfully.
+          #   Commit: ${{ github.sha }}
+          #   Workflow: ${{ github.workflow }}
+          #   Run: ${{ github.run_number }}
+
+      - name: Trigger update-image-tag workflow in CD repo
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: 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
+          repository: matanA1305/repoB-CD
+          event-type: update-image-tag
+          client-payload: '{"image_tag": "${{ steps.get_tag.outputs.new_tag }}"}' 

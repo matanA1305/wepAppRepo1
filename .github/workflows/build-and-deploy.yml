@@ -1,0 +1,59 @@
+name: Build and Deploy Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      CD_REPO_URL: ${{ secrets.CD_REPO_URL }}
+      CD_REPO_TOKEN: ${{ secrets.CD_REPO_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/fastapi-app:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ env.DOCKERHUB_USERNAME }}/fastapi-app:latest
+
+      - name: Send notification email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: CI Pipeline Notification
+          to: ${{ secrets.NOTIFY_EMAIL_TO }}
+          from: ${{ secrets.NOTIFY_EMAIL_FROM }}
+          body: |
+            The Docker image for the FastAPI app was built and pushed successfully.
+            Commit: ${{ github.sha }}
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.run_number }}
+
+      - name: Update CD repository (placeholder)
+        run: |
+          git config --global user.email "ci@example.com"
+          git config --global user.name "CI Bot"
+          git clone https://${{ env.CD_REPO_TOKEN }}@${{ env.CD_REPO_URL }} cd-repo
+          cd cd-repo
+          # Update deployment files as needed
+          git add .
+          git commit -m "Update deployment with new image"
+          git push 

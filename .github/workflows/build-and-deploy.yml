@@ -56,7 +56,6 @@ jobs:
           #   Workflow: ${{ github.workflow }}
           #   Run: ${{ github.run_number }}
 
-
 - name: Trigger update-image-tag workflow in repoB-CD
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

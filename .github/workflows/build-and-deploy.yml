@@ -55,7 +55,7 @@ jobs:
           #   Commit: ${{ github.sha }}
           #   Workflow: ${{ github.workflow }}
           #   Run: ${{ github.run_number }}
-                - name: Trigger update-image-tag workflow in repoB-CD
+        - name: Trigger update-image-tag workflow in repoB-CD
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_TAG: ${{ steps.get_tag.outputs.new_tag }}

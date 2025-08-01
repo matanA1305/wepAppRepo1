@@ -36,7 +36,6 @@ jobs:
             new_tag="v$(( ${latest_tag#v} + 1 ))"
           fi
           echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
-
       - name: Build Docker image with new tag
         run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/fastapi-app:${{ steps.get_tag.outputs.new_tag }} .
 

@@ -57,7 +57,7 @@ jobs:
 
       - name: Trigger update-image-tag workflow in repoB-CD
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: Bearer $CD_REPO_TOKEN
           IMAGE_TAG: ${{ steps.get_tag.outputs.new_tag }}
         run: |
           curl -L \

@@ -11,7 +11,7 @@ jobs:
       DOCKERHUB_USERNAME: matana1305
       DOCKERHUB_TOKEN: dckr_pat_noNDGBfjC2yYFD3OyxTXN0t7rEc
       CD_REPO_URL: https://github.com/matana1305/fastapi-app-cd.git
-      CD_REPO_TOKEN: ${{ secrets.CD_REPO_TOKEN }}
+      CD_REPO_TOKEN: ${{ secrets.CD }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
       - name: Trigger update-image-tag workflow in repoB-CD
         env:
           GITHUB_TOKEN: Bearer $CD_REPO_TOKEN
-          IMAGE_TAG: ${{ steps.get_tag.outputs.new_tag }}
+          image_tag: ${{ steps.get_tag.outputs.new_tag }}
         run: |
           curl -L \
             -X POST \
